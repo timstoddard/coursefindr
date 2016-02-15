@@ -15,10 +15,10 @@ Features:
 
 Known bugs:
 
--Http get requests do not update the view after completion
+-Http get requests do not update the view after completion (tried everything I could find, but nothing worked)
 
-    -Workaround: use “fetch courses” button)
+    -Workaround: use “fetch courses” button - click it until the courses load)
 
 Angular uses gulp to run
 
-PHP and MySQL both use servers run by MAMP
+PHP and MySQL both use servers run by MAMP — PHP REST API is in the php folder, the MySQL table is in the MySql table folder
