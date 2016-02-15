@@ -1,0 +1,223 @@
+<div class="title">
+    <h1 class="text-center">Welcome to CourseFindr!</h1>
+    <h3 class="text-center">{{selectedText}}</h3>
+</div>
+
+<div class="my-selected-courses" *ngIf="mySelectedCourses != null">
+    <div>
+        <h3 class="msc-header">My Selected Courses<span style="padding:10px"></span><button (click)="removeAll()" class="btn btn-default btn-md">Remove all courses</button></h3>
+        <table class="table table-hover table-condensed table-responsive text-center">
+            <thead class="text-center">
+                <tr>
+                    <th>
+                        <span (click)="MSCSortType = 'dept'; MSCSortReverse = !MSCSortReverse">Dept</span>
+                        <span *ngIf="MSCSortType == 'dept' && !MSCSortReverse" class="glyphicon glyphicon-menu-up"></span>
+                        <span *ngIf="MSCSortType == 'dept' && MSCSortReverse" class="glyphicon glyphicon-menu-down"></span>
+                    </th>
+                    <th>
+                        <span (click)="MSCSortType = 'courseNumber'; MSCSortReverse = !MSCSortReverse">Number</span>
+                        <span *ngIf="MSCSortType == 'courseNumber' && !MSCSortReverse" class="glyphicon glyphicon-menu-up"></span>
+                        <span *ngIf="MSCSortType == 'courseNumber' && MSCSortReverse" class="glyphicon glyphicon-menu-down"></span>
+                    </th>
+                    <th>
+                        <span (click)="MSCSortType = 'name'; MSCSortReverse = !MSCSortReverse">Name</span>
+                        <span *ngIf="MSCSortType == 'name' && !MSCSortReverse" class="glyphicon glyphicon-menu-up"></span>
+                        <span *ngIf="MSCSortType == 'name' && MSCSortReverse" class="glyphicon glyphicon-menu-down"></span>
+                    </th>
+                    <th>
+                        <span (click)="MSCSortType = 'type'; MSCSortReverse = !MSCSortReverse">Type</span>
+                        <span *ngIf="MSCSortType == 'type' && !MSCSortReverse" class="glyphicon glyphicon-menu-up"></span>
+                        <span *ngIf="MSCSortType == 'type' && MSCSortReverse" class="glyphicon glyphicon-menu-down"></span>
+                    </th>
+                    <th>
+                        <span (click)="MSCSortType = 'sections'; MSCSortReverse = !MSCSortReverse">Sections</span>
+                        <span *ngIf="MSCSortType == 'sections' && !MSCSortReverse" class="glyphicon glyphicon-menu-up"></span>
+                        <span *ngIf="MSCSortType == 'sections' && MSCSortReverse" class="glyphicon glyphicon-menu-down"></span>
+                    </th>
+                    <th>Description
+                    </th>
+                    <th>
+                        <span (click)="MSCSortType = 'units'; MSCSortReverse = !MSCSortReverse">Units</span>
+                        <span *ngIf="MSCSortType == 'units' && !MSCSortReverse" class="glyphicon glyphicon-menu-up"></span>
+                        <span *ngIf="MSCSortType == 'units' && MSCSortReverse" class="glyphicon glyphicon-menu-down"></span>
+                    </th>
+                    <th>Remove</th>
+                </tr>
+            </thead>
+            <tr *ngFor="#course of mySelectedCourses | orderBy:MSCSortType:MSCSortReverse" class="data">
+                <td>{{course.dept}}</td>
+                <td>{{course.courseNumber}}</td>
+                <td>{{course.name}}</td>
+                <td>{{course.type}}</td>
+                <td>{{course.sections}}</td>
+                <td>
+                    <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#myModal"
+                        (click)="onCourseSelect(course)">Show</button>
+                    <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="basicModal"
+                        aria-hidden="true" *ngIf="showCourse != null">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">X</button>
+                                    <h4 class="modal-title" id="myModalLabel">
+                                        {{showCourse.dept}} {{showCourse.courseNumber}}: {{showCourse.name}}
+                                    </h4>
+                                </div>
+                                <div class="modal-body">
+                                    {{showCourse.description}}
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </td>
+                <td>{{course.units}}</td>
+                <td><button class="btn btn-default btn-xs"
+                    (click)="removeCourse(course)">
+                    Remove This Course
+                </button></td>
+            </tr>
+        </table>
+    </div>
+    <div class="stats bg-info" *ngIf="mySelectedCourses.length > 0">
+        You have selected:<br>{{classTypes}}<br>for a total of {{units}} unit<span *ngIf="units != 1">s</span>.
+        <div *ngIf="unitsHasRange">
+            Note: One or more of the courses you have selected have a varying unit range.
+        </div>
+        <div *ngIf="units > 22" id="invalidUnitsText">
+            Note: You need less than 22 units to have a valid schedule.
+        </div>
+    </div>
+</div>
+
+<div class="available-courses">
+    <h3 class="ac-header">Available Courses<span style="padding:10px"></span><button (click)="updateView()" class="btn btn-default btn-md">Fetch courses</button></h3>
+    <div class="input-group">
+        <span class="input-group-addon" id="basic-addon1">
+            <span class="glyphicon glyphicon-search" aria-hidden="true"></span>
+        </span>
+        <input type="text" class="form-control" placeholder="Filter courses" aria-describedby="basic-addon1"
+            [(ngModel)]="searchString" (click)="onSearchFocus()" id="courseSearch">
+    </div>
+    <table (update)="updateView()" class="table table-hover table-condensed table-responsive">
+        <thead>
+            <tr>
+                <th>
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-default dropdown-toggle bold" data-toggle="dropdown"
+                            aria-haspopup="true" aria-expanded="false">
+                            <strong>Dept</strong> <span class="caret"></span>
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li *ngFor="#subject of subjects" (click)="getCourses('Dept', subject)"><a>{{subject}}</a></li>
+                        </ul>
+                    </div>
+                    <span *ngIf="ACSortType != 'dept'" (click)="ACSortType = 'dept'; ACSortReverse = !ACSortReverse">—</span>
+                    <span *ngIf="ACSortType == 'dept' && !ACSortReverse" (click)="ACSortReverse = !ACSortReverse" class="glyphicon glyphicon-menu-up"></span>
+                    <span *ngIf="ACSortType == 'dept' && ACSortReverse" (click)="ACSortReverse = !ACSortReverse" class="glyphicon glyphicon-menu-down"></span>
+                </th>
+                <th>
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-default dropdown-toggle bold" data-toggle="dropdown"
+                            aria-haspopup="true" aria-expanded="false">
+                            <strong>Number</strong> <span class="caret"></span>
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a (click)="getCourses('courseNumber', '1')">100-199</a></li>
+                            <li><a (click)="getCourses('courseNumber', '2')">200-299</a></li>
+                            <li><a (click)="getCourses('courseNumber', '3')">300-399</a></li>
+                            <li><a (click)="getCourses('courseNumber', '4')">400-499</a></li>
+                            <li><a (click)="getCourses('courseNumber', '5')">500-599</a></li>
+                        </ul>
+                    </div>
+                    <span *ngIf="ACSortType != 'courseNumber'" (click)="ACSortType = 'courseNumber'; ACSortReverse = !ACSortReverse">—</span>
+                    <span *ngIf="ACSortType == 'courseNumber' && !ACSortReverse" (click)="ACSortReverse = !ACSortReverse" class="glyphicon glyphicon-menu-up"></span>
+                    <span *ngIf="ACSortType == 'courseNumber' && ACSortReverse" (click)="ACSortReverse = !ACSortReverse" class="glyphicon glyphicon-menu-down"></span>
+                </th>
+                <th>
+                    <span (click)="ACSortType = 'name'; ACSortReverse = !ACSortReverse">Name</span>
+                    <span *ngIf="ACSortType == 'name' && !ACSortReverse" class="glyphicon glyphicon-menu-up"></span>
+                    <span *ngIf="ACSortType == 'name' && ACSortReverse" class="glyphicon glyphicon-menu-down"></span>
+                </th>
+                <th>
+                    <span (click)="ACSortType = 'type'; ACSortReverse = !ACSortReverse">Type</span>
+                    <span *ngIf="ACSortType == 'type' && !ACSortReverse" class="glyphicon glyphicon-menu-up"></span>
+                    <span *ngIf="ACSortType == 'type' && ACSortReverse" class="glyphicon glyphicon-menu-down"></span>
+                </th>
+                <th>
+                    <span (click)="ACSortType = 'sections'; ACSortReverse = !ACSortReverse">Sections</span>
+                    <span *ngIf="ACSortType == 'sections' && !ACSortReverse" class="glyphicon glyphicon-menu-up"></span>
+                    <span *ngIf="ACSortType == 'sections' && ACSortReverse" class="glyphicon glyphicon-menu-down"></span>
+                </th>
+                <th>Description</th>
+                <th>
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-default dropdown-toggle bold" data-toggle="dropdown"
+                            aria-haspopup="true" aria-expanded="false">
+                            <strong>Units</strong> <span class="caret"></span>
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a (click)="getCourses('units', '1')">1</a></li>
+                            <li><a (click)="getCourses('units', '2')">2</a></li>
+                            <li><a (click)="getCourses('units', '3')">3</a></li>
+                            <li><a (click)="getCourses('units', '4')">4</a></li>
+                            <li><a (click)="getCourses('units', '5')">5</a></li>
+                            <li><a (click)="getCourses('units', '6')">6</a></li>
+                            <li><a (click)="getCourses('units', '8')">8</a></li>
+                            <li><a (click)="getCourses('units', '%-%')">Range</a></li>
+                        </ul>
+                    </div>
+                    <span *ngIf="ACSortType != 'units'" (click)="ACSortType = 'units'; ACSortReverse = !ACSortReverse">—</span>
+                    <span *ngIf="ACSortType == 'units' && !ACSortReverse" (click)="ACSortReverse = !ACSortReverse" class="glyphicon glyphicon-menu-up"></span>
+                    <span *ngIf="ACSortType == 'units' && ACSortReverse" (click)="ACSortReverse = !ACSortReverse" class="glyphicon glyphicon-menu-down"></span>
+                </th>
+                <th>Add</th>
+            </tr>
+        </thead>
+        <tr *ngFor="#course of courses | orderBy:ACSortType:ACSortReverse | filter:searchString"
+            class="data">
+            <td>{{course.dept}}</td>
+            <td>{{course.courseNumber}}</td>
+            <td>{{course.name}}</td>
+            <td>{{course.type}}</td>
+            <td>{{course.sections}}</td>
+            <td>
+                <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#myModal"
+                    (click)="onCourseSelect(course)">Show</button>
+                    <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="basicModal"
+                        aria-hidden="true" *ngIf="showCourse != null">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">X</button>
+                                    <h4 class="modal-title" id="myModalLabel">
+                                        {{showCourse.dept}} {{showCourse.courseNumber}}: {{showCourse.name}}
+                                    </h4>
+                                </div>
+                                <div class="modal-body">
+                                    {{showCourse.description}}
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+            </td>
+            <td>{{course.units}}</td>
+            <td><button *ngIf="!course.added"
+                class="btn btn-default btn-xs"
+                (click)="addCourse(course)">
+                    Add This Course
+                </button>
+                <div *ngIf="course.added">Course Added</div>
+            </td>
+        </tr>
+    </table>
+</div>
+
+<div class="footer">
+    <div class="footer-text">Copyright © 2016 Tim Stoddard. All rights reserved.<br>Hosting by Lucas Miller</div>
+</div>
