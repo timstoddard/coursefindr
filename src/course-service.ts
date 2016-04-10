@@ -12,7 +12,8 @@ export class CourseService {
     @Output() update: EventEmitter<any> = new EventEmitter();
     getCourses(col: string, value: string) {
         return this.http.get(
-            'http://172.16.100.7:8888/api.php?col='+col+'&value='+value)
+            //'http://172.16.100.7:8888/api.php?col='+col+'&value='+value)
+            'http://coursefindr.tstoddard.com:8888/api.php?col='+col+'&value='+value)
             .map(res => res.json());
     }
 }

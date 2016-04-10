@@ -16,7 +16,9 @@ var CourseService = (function () {
         this.update = new core_1.EventEmitter();
     }
     CourseService.prototype.getCourses = function (col, value) {
-        return this.http.get('http://172.16.100.7:8888/api.php?col=' + col + '&value=' + value)
+        return this.http.get(
+        //'http://172.16.100.7:8888/api.php?col='+col+'&value='+value)
+        'http://coursefindr.tstoddard.com:8888/api.php?col=' + col + '&value=' + value)
             .map(function (res) { return res.json(); });
     };
     __decorate([

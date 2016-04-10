@@ -1,4 +1,4 @@
-import {Component, ChangeDetectionStrategy, EventEmitter, Output} from 'angular2/core';
+import {Component, ChangeDetectionStrategy, ChangeDetectorRef, EventEmitter, Output} from 'angular2/core';
 import {Course} from './course';
 import {CourseService} from './course-service';
 import {CORE_DIRECTIVES, FORM_DIRECTIVES} from 'angular2/common';
@@ -38,10 +38,9 @@ export class AppComponent {
             'GEOG','GEOL','GER','GRC','GSB','HIST','IME','ISLA','IT','ITAL','JOUR','JPNS','KINE',
             'LA','LS','MATE','MATH','MCRO','ME','MLL','MSCI','MSL','MU','NR','PHIL','PHYS','POLS',
             'PSC','PSY','RELS','RPTA','SCM','SOC','SOCS','SPAN','SS','STAT','TH','WGS','WVIT','ZOO'];
-                 
-    @Output() update: EventEmitter<any> = new EventEmitter();
-    
-    constructor(private _courseService: CourseService) {
+                     
+    constructor(private _courseService: CourseService,
+                private _changeDetectorRef: ChangeDetectorRef) {
         this.courses = [];
         if (this.hasLocalStorage && localStorage.getItem('mySelectedCourses') !== null) {
             this.mySelectedCourses = JSON.parse(localStorage.getItem('mySelectedCourses'));
@@ -50,41 +49,39 @@ export class AppComponent {
     }
     
     getCourses(col: string, value: string) {
-        if (col === 'Dept') {
-            this.updateSelectedText('Department', value);
-        } else if (col === 'courseNumber') {
-            this.updateSelectedText('Course Number', value + '00-' + value + '99');
-        } else if (col === 'units') {
-            this.updateSelectedText('Units', parseInt(value) > 0 ? value : 'Range');
-        }
+        this.selectedText = 'Loading...';
         this._courseService.getCourses(col, value)
             .subscribe(
                 res => {
                     this.courses = res;
                     let self = this;
-                    // check if class already added
                     this.courses.forEach(function(elem) {
                         if (self.classAlreadyAdded(elem.dept, elem.courseNumber, elem.type)) {
                             elem.added = true;
                         }
                     });
+                    if (col === 'Dept') {
+                        this.selectedText = `Showing all ${value} courses`;
+                    } else if (col === 'courseNumber') {
+                        this.selectedText = `Showing all ${value + '00-level'} courses`;
+                    } else if (col === 'units') {
+                        this.selectedText = `Showing all ${(parseInt(value) > 0 ? value : 'varying') + '-unit'} courses`;
+                    }
+                    this._changeDetectorRef.markForCheck();
                 },
-                error => console.log(error),
-                () => this.update.emit(this.courses) /* doesn't work (why?) */);
+                error => console.log(error));
     }
     
     private classAlreadyAdded(dept: string, courseNumber: string, type: string) {
         let temp: boolean = false;
-        this.mySelectedCourses.forEach(function(elem) {
-            if (elem.dept === dept && elem.courseNumber === courseNumber && elem.type === type) {
-                temp = true;
-            }
-        });
+        if (this.mySelectedCourses) {
+            this.mySelectedCourses.forEach(function(elem) {
+                if (elem.dept === dept && elem.courseNumber === courseNumber && elem.type === type) {
+                    temp = true;
+                }
+            });
+        }
         return temp;
-    }
-    
-    updateView() {
-        this.update.emit(this.courses); /* this one works... */
     }
     
     removeAll() {
@@ -115,17 +112,6 @@ export class AppComponent {
         if (this.hasLocalStorage) {
             localStorage.setItem('mySelectedCourses', JSON.stringify(this.mySelectedCourses));
         }
-    }
-    
-    onSearchFocus() {
-        if (this.courses.length <= 0) {
-            alert('No courses selected.');
-            document.getElementById('courseSearch').blur();
-        }
-    }
-    
-    private updateSelectedText(col: string, value: string) {
-        this.selectedText = 'Showing all courses where: ' + col + ' = ' + value;
     }
     
     updateStats() {

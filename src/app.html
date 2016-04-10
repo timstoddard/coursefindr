@@ -93,13 +93,10 @@
 </div>
 
 <div class="available-courses">
-    <h3 class="ac-header">Available Courses<span style="padding:10px"></span><button (click)="updateView()" class="btn btn-default btn-md">Fetch courses</button></h3>
+    <h3 class="ac-header">Available Courses</h3>
     <div class="input-group">
-        <span class="input-group-addon" id="basic-addon1">
-            <span class="glyphicon glyphicon-search" aria-hidden="true"></span>
-        </span>
-        <input type="text" class="form-control" placeholder="Filter courses" aria-describedby="basic-addon1"
-            [(ngModel)]="searchString" (click)="onSearchFocus()" id="courseSearch">
+        <input id="courseSearch" type="text" class="form-control" placeholder="Filter courses" aria-describedby="basic-addon1"
+            [(ngModel)]="searchString" [disabled]="courses.length === 0">
     </div>
     <table (update)="updateView()" class="table table-hover table-condensed table-responsive">
         <thead>

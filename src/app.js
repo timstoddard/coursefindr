@@ -13,8 +13,9 @@ var common_1 = require('angular2/common');
 var orderByPipe_1 = require('./orderByPipe');
 var filterPipe_1 = require('./filterPipe');
 var AppComponent = (function () {
-    function AppComponent(_courseService) {
+    function AppComponent(_courseService, _changeDetectorRef) {
         this._courseService = _courseService;
+        this._changeDetectorRef = _changeDetectorRef;
         this.hasLocalStorage = typeof (Storage) !== 'undefined';
         this.MSCSortType = 'courseNumber';
         this.MSCSortReverse = false;
@@ -28,7 +29,6 @@ var AppComponent = (function () {
             'GEOG', 'GEOL', 'GER', 'GRC', 'GSB', 'HIST', 'IME', 'ISLA', 'IT', 'ITAL', 'JOUR', 'JPNS', 'KINE',
             'LA', 'LS', 'MATE', 'MATH', 'MCRO', 'ME', 'MLL', 'MSCI', 'MSL', 'MU', 'NR', 'PHIL', 'PHYS', 'POLS',
             'PSC', 'PSY', 'RELS', 'RPTA', 'SCM', 'SOC', 'SOCS', 'SPAN', 'SS', 'STAT', 'TH', 'WGS', 'WVIT', 'ZOO'];
-        this.update = new core_1.EventEmitter();
         this.courses = [];
         if (this.hasLocalStorage && localStorage.getItem('mySelectedCourses') !== null) {
             this.mySelectedCourses = JSON.parse(localStorage.getItem('mySelectedCourses'));
@@ -37,38 +37,38 @@ var AppComponent = (function () {
     }
     AppComponent.prototype.getCourses = function (col, value) {
         var _this = this;
-        if (col === 'Dept') {
-            this.updateSelectedText('Department', value);
-        }
-        else if (col === 'courseNumber') {
-            this.updateSelectedText('Course Number', value + '00-' + value + '99');
-        }
-        else if (col === 'units') {
-            this.updateSelectedText('Units', parseInt(value) > 0 ? value : 'Range');
-        }
+        this.selectedText = 'Loading...';
         this._courseService.getCourses(col, value)
             .subscribe(function (res) {
             _this.courses = res;
             var self = _this;
-            // check if class already added
             _this.courses.forEach(function (elem) {
                 if (self.classAlreadyAdded(elem.dept, elem.courseNumber, elem.type)) {
                     elem.added = true;
                 }
             });
-        }, function (error) { return console.log(error); }, function () { return _this.update.emit(_this.courses); } /* doesn't work (why?) */ /* doesn't work (why?) */);
+            if (col === 'Dept') {
+                _this.selectedText = "Showing all " + value + " courses";
+            }
+            else if (col === 'courseNumber') {
+                _this.selectedText = "Showing all " + (value + '00-level') + " courses";
+            }
+            else if (col === 'units') {
+                _this.selectedText = "Showing all " + ((parseInt(value) > 0 ? value : 'varying') + '-unit') + " courses";
+            }
+            _this._changeDetectorRef.markForCheck();
+        }, function (error) { return console.log(error); });
     };
     AppComponent.prototype.classAlreadyAdded = function (dept, courseNumber, type) {
         var temp = false;
-        this.mySelectedCourses.forEach(function (elem) {
-            if (elem.dept === dept && elem.courseNumber === courseNumber && elem.type === type) {
-                temp = true;
-            }
-        });
+        if (this.mySelectedCourses) {
+            this.mySelectedCourses.forEach(function (elem) {
+                if (elem.dept === dept && elem.courseNumber === courseNumber && elem.type === type) {
+                    temp = true;
+                }
+            });
+        }
         return temp;
-    };
-    AppComponent.prototype.updateView = function () {
-        this.update.emit(this.courses); /* this one works... */
     };
     AppComponent.prototype.removeAll = function () {
         this.mySelectedCourses = [];
@@ -95,15 +95,6 @@ var AppComponent = (function () {
         if (this.hasLocalStorage) {
             localStorage.setItem('mySelectedCourses', JSON.stringify(this.mySelectedCourses));
         }
-    };
-    AppComponent.prototype.onSearchFocus = function () {
-        if (this.courses.length <= 0) {
-            alert('No courses selected.');
-            document.getElementById('courseSearch').blur();
-        }
-    };
-    AppComponent.prototype.updateSelectedText = function (col, value) {
-        this.selectedText = 'Showing all courses where: ' + col + ' = ' + value;
     };
     AppComponent.prototype.updateStats = function () {
         var tempData = [];
@@ -159,10 +150,6 @@ var AppComponent = (function () {
         });
         this.unitsHasRange = temp;
     };
-    __decorate([
-        core_1.Output(), 
-        __metadata('design:type', core_1.EventEmitter)
-    ], AppComponent.prototype, "update", void 0);
     AppComponent = __decorate([
         core_1.Component({
             selector: 'app',
@@ -174,7 +161,7 @@ var AppComponent = (function () {
             pipes: [orderByPipe_1.OrderByPipe, filterPipe_1.FilterPipe],
             viewBindings: [course_service_1.CourseService]
         }), 
-        __metadata('design:paramtypes', [course_service_1.CourseService])
+        __metadata('design:paramtypes', [course_service_1.CourseService, core_1.ChangeDetectorRef])
     ], AppComponent);
     return AppComponent;
 })();
